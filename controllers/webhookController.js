@@ -23,12 +23,12 @@ exports.registerWebhook = async(req,res) =>{
     });
     return res.status(201).json({ ok: true, webhookId: webhook.id, secret });
     } catch (error) {
-        console.error(err);
+        console.error(error);
         return res.status(500).json({ error: 'internal_error' });
     }
 }
 
-exports.listenWebhook = async(req,res) =>{
-    const webhooks = await prisma.webhook.findMany({ include: { client: true } });
-    res.json(webhooks);
-}
+exports.listWebhooks = async (req, res) => {
+  const list = await prisma.webhook.findMany({ include: { client: true } });
+  res.json(list);
+};

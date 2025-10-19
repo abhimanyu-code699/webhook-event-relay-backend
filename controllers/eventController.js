@@ -30,3 +30,13 @@ exports.receiveEvent = async(req, res) => {
     return res.status(500).json({ error: 'internal_error' });
   }
 }
+
+exports.getAllEvents = async (req, res) => {
+  try {
+    const events = await prisma.event.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(events);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal_error' });
+  }
+};

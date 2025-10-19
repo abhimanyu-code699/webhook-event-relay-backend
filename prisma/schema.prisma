@@ -26,41 +26,55 @@ model Client {
   email     String   @unique
   apiKey    String   @unique
   webhooks  Webhook[]
+  events    Event[]
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Webhook {
-  id           String   @id @default(cuid())
-  clientId     String
-  client       Client   @relation(fields: [clientId], references: [id])
-  eventType    String
-  targetUrl    String
-  method       String   @default("POST")
-  secret       String
-  isActive     Boolean  @default(true)
-  maxRetries   Int      @default(5)
-  createdAt    DateTime @default(now())
+  id         String    @id @default(cuid())
+  clientId   String
+  eventType  String
+  targetUrl  String
+  method     String    @default("POST")
+  secret     String
+  isActive   Boolean   @default(true)
+  maxRetries Int       @default(5)
+  deliveries Delivery[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
+  client Client @relation(fields: [clientId], references: [id])
   @@index([eventType])
 }
 
 model Event {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
+  clientId   String?
   eventType  String
   source     String
   payload    Json
-  createdAt  DateTime @default(now())
-  published  Boolean  @default(false)
+  published  Boolean    @default(false)
+  idempotencyKey String? // optional for dedupe
+  deliveries Delivery[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  client Client? @relation(fields: [clientId], references: [id])
 }
 
 model Delivery {
   id               String   @id @default(cuid())
   eventId          String
   webhookId        String
-  status           String   @default("PENDING")  // PENDING, SUCCESS, FAILED
+  status           String   @default("PENDING") // PENDING, SUCCESS, FAILED
   attempts         Int      @default(0)
   lastResponseCode Int?
   lastResponseBody String?
   nextRetryAt      DateTime?
   createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  event   Event   @relation(fields: [eventId], references: [id])
+  webhook Webhook @relation(fields: [webhookId], references: [id])
 }
